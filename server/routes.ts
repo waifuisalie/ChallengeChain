@@ -1,41 +1,10 @@
-import express, { type Express, Request, Response } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertChallengeSchema, insertParticipantSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
-
-// Configure multer for file uploads
-const storage_engine = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const extension = path.extname(file.originalname);
-    cb(null, `challenge-${uniqueSuffix}${extension}`);
-  }
-});
-
-const upload = multer({ 
-  storage: storage_engine,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    // Accept only images
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed!") as any);
-    }
-  }
-});
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Add route to serve static files from the uploads directory
-  app.use("/uploads", express.static("uploads"));
-  
   const router = express.Router();
 
   // User routes
@@ -112,21 +81,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch challenge" });
-    }
-  });
-
-  // Handle file upload for challenges
-  router.post("/upload", upload.single("image"), (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-      
-      const filePath = `/uploads/${req.file.filename}`;
-      res.status(200).json({ imageUrl: filePath });
-    } catch (error) {
-      console.error("File upload error:", error);
-      res.status(500).json({ message: "Failed to upload file" });
     }
   });
 
