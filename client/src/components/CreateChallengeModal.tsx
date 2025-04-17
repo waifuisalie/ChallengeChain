@@ -78,14 +78,23 @@ const CreateChallengeModal = ({ isOpen, onClose }: CreateChallengeModalProps) =>
       const startDate = new Date(data.startDate);
       const status = startDate <= now ? "active" : "upcoming";
       
-      // Simulating a user ID 1 for now (would be from auth in a real app)
+      // Create challenge data with proper Date objects
       const challengeData = {
-        ...data,
+        name: data.name,
+        description: data.description,
+        rules: data.rules,
+        category: data.category,
+        verificationMethod: data.verificationMethod,
+        maxParticipants: data.maxParticipants,
+        cryptoType: data.cryptoType,
+        entryFee: data.entryFee,
         creatorId: 1,
-        startDate: new Date(data.startDate),
+        startDate: startDate,
         endDate: new Date(data.endDate),
-        status
+        status: status
       };
+      
+      console.log("Submitting challenge:", challengeData);
       
       // Create challenge via API
       await apiRequest("POST", "/api/challenges", challengeData);
@@ -102,6 +111,7 @@ const CreateChallengeModal = ({ isOpen, onClose }: CreateChallengeModalProps) =>
       onClose();
       refreshChallenges();
     } catch (error) {
+      console.error("Challenge creation error:", error);
       toast({
         variant: "destructive",
         title: "Challenge Creation Failed",

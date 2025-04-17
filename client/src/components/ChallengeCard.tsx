@@ -143,6 +143,11 @@ const ChallengeCard = ({ challenge, onJoinClick }: ChallengeCardProps) => {
   // Get a winner if there is one
   const winner = challenge.participants.find(p => p.isWinner);
   
+  // Check if the current user has already joined this challenge
+  const userHasJoined = wallet.connected && challenge.participants.some(
+    participant => participant.walletAddress === wallet.address
+  );
+
   return (
     <Card className="rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
       <div className={`h-36 relative bg-gradient-to-r ${getCategoryGradient(challenge.category)}`}>
@@ -223,6 +228,14 @@ const ChallengeCard = ({ challenge, onJoinClick }: ChallengeCardProps) => {
             disabled 
           >
             Challenge Ended
+          </Button>
+        ) : userHasJoined ? (
+          <Button 
+            className="w-full py-2" 
+            variant="outline"
+            disabled
+          >
+            You've Joined
           </Button>
         ) : (
           <Button 
