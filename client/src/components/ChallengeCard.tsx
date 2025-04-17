@@ -150,14 +150,26 @@ const ChallengeCard = ({ challenge, onJoinClick }: ChallengeCardProps) => {
 
   return (
     <Card className="rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
-      <div className={`h-36 relative bg-gradient-to-r ${getCategoryGradient(challenge.category)}`}>
-        <div className="absolute inset-0 flex items-center justify-center">
-          {getCategoryIcon(challenge.category)}
-        </div>
-        <div className="absolute top-4 right-4 bg-accent text-white text-xs font-bold px-2 py-1 rounded-full">
+      <div className={`h-36 relative ${challenge.imageUrl ? '' : `bg-gradient-to-r ${getCategoryGradient(challenge.category)}`}`}>
+        {challenge.imageUrl ? (
+          // Display uploaded image if available
+          <img 
+            src={challenge.imageUrl} 
+            alt={challenge.name}
+            className="h-full w-full object-cover absolute inset-0"
+          />
+        ) : (
+          // Show category icon if no image
+          <div className="absolute inset-0 flex items-center justify-center">
+            {getCategoryIcon(challenge.category)}
+          </div>
+        )}
+        {/* Add a semi-transparent overlay to ensure text readability over images */}
+        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+        <div className="absolute top-4 right-4 bg-accent text-white text-xs font-bold px-2 py-1 rounded-full z-10">
           {challenge.entryFee} {challenge.cryptoType}
         </div>
-        <div className="absolute bottom-4 left-4 bg-white/90 text-xs font-medium px-2 py-1 rounded-full flex items-center">
+        <div className="absolute bottom-4 left-4 bg-white/90 text-xs font-medium px-2 py-1 rounded-full flex items-center z-10">
           <span className={`w-2 h-2 ${getStatusColor(challenge.status)} rounded-full mr-1.5`}></span>
           {challenge.status === 'completed' ? 'Ended' : (challenge.status === 'active' ? 'Active • ' : 'Upcoming • ')}
           {formatTimeRemaining(challenge.startDate, challenge.endDate)}

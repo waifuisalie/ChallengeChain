@@ -8,11 +8,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useWallet } from "@/contexts/WalletContext";
 import { useToast } from "@/hooks/use-toast";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, ImageIcon, Loader2 } from "lucide-react";
 import * as z from "zod";
 import { useChallenges } from "@/contexts/ChallengeContext";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import React, { useState } from "react";
 
 interface CreateChallengeModalProps {
   isOpen: boolean;
@@ -29,7 +30,8 @@ const formSchema = z.object({
   startDate: z.string().min(1, "Please select a start date"),
   endDate: z.string().min(1, "Please select an end date"),
   cryptoType: z.string().min(1, "Please select a cryptocurrency"),
-  entryFee: z.coerce.number().min(0.01, "Minimum entry fee is 0.01")
+  entryFee: z.coerce.number().min(0.01, "Minimum entry fee is 0.01"),
+  imageUrl: z.string().optional()
 }).refine(data => {
   const start = new Date(data.startDate);
   const end = new Date(data.endDate);
@@ -58,9 +60,14 @@ const CreateChallengeModal = ({ isOpen, onClose }: CreateChallengeModalProps) =>
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       cryptoType: "SOL",
-      entryFee: 0.5
+      entryFee: 0.5,
+      imageUrl: ""
     }
   });
+  
+  // State for managing image upload
+  const [isUploading, setIsUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
   
   const onSubmit = async (data: FormValues) => {
     try {
@@ -91,7 +98,8 @@ const CreateChallengeModal = ({ isOpen, onClose }: CreateChallengeModalProps) =>
         creatorId: 1,
         startDate: startDate,
         endDate: new Date(data.endDate),
-        status: status
+        status: status,
+        imageUrl: data.imageUrl || null
       };
       
       console.log("Submitting challenge:", challengeData);
@@ -140,6 +148,127 @@ const CreateChallengeModal = ({ isOpen, onClose }: CreateChallengeModalProps) =>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Challenge Image */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Challenge Cover Image</h3>
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Challenge Image</FormLabel>
+                      <div className="grid gap-4">
+                        <div 
+                          className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 
+                            ${previewUrl ? 'border-gray-200' : 'border-gray-300'} 
+                            ${previewUrl ? 'bg-white' : 'bg-gray-50'}`
+                          }
+                        >
+                          {previewUrl ? (
+                            <div className="relative w-full h-48">
+                              <img
+                                src={previewUrl}
+                                alt="Challenge preview"
+                                className="w-full h-full object-cover rounded-md"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-2 right-2"
+                                onClick={() => {
+                                  setPreviewUrl("");
+                                  form.setValue("imageUrl", "");
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <ImageIcon className="w-8 h-8 text-gray-400" />
+                              <p className="text-sm text-gray-500">Drag and drop an image or click to upload</p>
+                              <p className="text-xs text-gray-400">PNG, JPG or GIF up to 5MB</p>
+                              {isUploading && <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />}
+                            </>
+                          )}
+                          
+                          {!previewUrl && (
+                            <div className="mt-2">
+                              <Input
+                                id="image-upload"
+                                type="file"
+                                accept="image/*"
+                                disabled={isUploading}
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    toast({
+                                      variant: "destructive",
+                                      title: "File too large",
+                                      description: "Please upload an image smaller than 5MB"
+                                    });
+                                    return;
+                                  }
+                                  
+                                  try {
+                                    setIsUploading(true);
+                                    
+                                    // Create form data
+                                    const formData = new FormData();
+                                    formData.append("image", file);
+                                    
+                                    // Upload image
+                                    const response = await fetch('/api/upload', {
+                                      method: 'POST',
+                                      body: formData
+                                    });
+                                    
+                                    if (!response.ok) {
+                                      throw new Error('Failed to upload image');
+                                    }
+                                    
+                                    const data = await response.json();
+                                    setPreviewUrl(data.imageUrl);
+                                    form.setValue("imageUrl", data.imageUrl);
+                                  } catch (error) {
+                                    console.error("Error uploading image:", error);
+                                    toast({
+                                      variant: "destructive",
+                                      title: "Upload Failed",
+                                      description: "Failed to upload image. Please try again."
+                                    });
+                                  } finally {
+                                    setIsUploading(false);
+                                  }
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full"
+                                disabled={isUploading}
+                                onClick={() => {
+                                  document.getElementById("image-upload")?.click();
+                                }}
+                              >
+                                {isUploading ? "Uploading..." : "Choose Image"}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            
             {/* Basic Information */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
