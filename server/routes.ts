@@ -86,10 +86,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   router.post("/challenges", async (req, res) => {
     try {
-      const challengeData = insertChallengeSchema.parse(req.body);
+      // Pre-process the request body to handle date conversions
+      const body = { ...req.body };
+      
+      if (body.startDate && typeof body.startDate === 'string') {
+        body.startDate = new Date(body.startDate);
+      }
+      
+      if (body.endDate && typeof body.endDate === 'string') {
+        body.endDate = new Date(body.endDate);
+      }
+      
+      const challengeData = insertChallengeSchema.parse(body);
       const challenge = await storage.createChallenge(challengeData);
       res.status(201).json(challenge);
     } catch (error) {
+      console.error("Challenge creation error:", error);
       if (error instanceof z.ZodError) {
         res.status(400).json({ message: error.message });
         return;
