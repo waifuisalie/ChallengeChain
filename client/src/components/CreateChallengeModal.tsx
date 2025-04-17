@@ -8,11 +8,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useWallet } from "@/contexts/WalletContext";
 import { useToast } from "@/hooks/use-toast";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, UploadCloud, Image } from "lucide-react";
 import * as z from "zod";
 import { useChallenges } from "@/contexts/ChallengeContext";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { useState } from "react";
 
 interface CreateChallengeModalProps {
   isOpen: boolean;
@@ -29,7 +30,8 @@ const formSchema = z.object({
   startDate: z.string().min(1, "Please select a start date"),
   endDate: z.string().min(1, "Please select an end date"),
   cryptoType: z.string().min(1, "Please select a cryptocurrency"),
-  entryFee: z.coerce.number().min(0.01, "Minimum entry fee is 0.01")
+  entryFee: z.coerce.number().min(0.01, "Minimum entry fee is 0.01"),
+  imageUrl: z.string().optional()
 }).refine(data => {
   const start = new Date(data.startDate);
   const end = new Date(data.endDate);
@@ -45,6 +47,8 @@ const CreateChallengeModal = ({ isOpen, onClose }: CreateChallengeModalProps) =>
   const { wallet } = useWallet();
   const { toast } = useToast();
   const { refreshChallenges } = useChallenges();
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [isUploading, setIsUploading] = useState<boolean>(false);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -91,7 +95,8 @@ const CreateChallengeModal = ({ isOpen, onClose }: CreateChallengeModalProps) =>
         creatorId: 1,
         startDate: startDate,
         endDate: new Date(data.endDate),
-        status: status
+        status: status,
+        imageUrl: imageUrl || data.imageUrl || ''
       };
       
       console.log("Submitting challenge:", challengeData);
@@ -172,6 +177,59 @@ const CreateChallengeModal = ({ isOpen, onClose }: CreateChallengeModalProps) =>
                   )}
                 />
                 
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Challenge Image</FormLabel>
+                      <FormControl>
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Input 
+                              type="text" 
+                              placeholder="Enter image URL" 
+                              {...field} 
+                              value={imageUrl || field.value || ''}
+                              onChange={(e) => {
+                                field.onChange(e.target.value);
+                                setImageUrl(e.target.value);
+                              }}
+                            />
+                          </div>
+                          {imageUrl && (
+                            <div className="mt-2 relative w-full h-40 bg-gray-50 rounded-md overflow-hidden">
+                              <img 
+                                src={imageUrl} 
+                                alt="Challenge preview" 
+                                className="w-full h-full object-cover"
+                                onError={() => {
+                                  toast({
+                                    variant: "destructive", 
+                                    title: "Invalid Image URL",
+                                    description: "Please enter a valid image URL"
+                                  });
+                                  setImageUrl("");
+                                  field.onChange("");
+                                }}
+                              />
+                            </div>
+                          )}
+                          {!imageUrl && (
+                            <div className="mt-2 border-2 border-dashed border-gray-200 rounded-md p-8 text-center">
+                              <Image className="mx-auto h-12 w-12 text-gray-400" />
+                              <div className="mt-2 text-sm text-gray-500">
+                                Enter the URL of an image to use as the challenge cover
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}

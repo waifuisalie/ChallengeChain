@@ -5,6 +5,20 @@ import { useWallet } from "@/contexts/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import { useChallenges } from "@/contexts/ChallengeContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Trash2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ChallengeCardProps {
   challenge: ChallengeWithParticipants;
@@ -14,6 +28,8 @@ interface ChallengeCardProps {
 const ChallengeCard = ({ challenge, onJoinClick }: ChallengeCardProps) => {
   const { wallet } = useWallet();
   const { toast } = useToast();
+  const { refreshChallenges } = useChallenges();
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   
   // Format time remaining or time until start
   const formatTimeRemaining = (startDate: Date, endDate: Date) => {
