@@ -14,6 +14,7 @@ export interface IStorage {
   getChallengesByUser(userId: number): Promise<Challenge[]>;
   createChallenge(challenge: InsertChallenge): Promise<Challenge>;
   updateChallengeStatus(id: number, status: string): Promise<Challenge | undefined>;
+  deleteChallenge(id: number): Promise<boolean>;
   
   // Participant operations
   getAllParticipants(): Promise<Participant[]>;
@@ -65,6 +66,20 @@ export class DatabaseStorage implements IStorage {
       .where(eq(challenges.id, id))
       .returning();
     return result[0];
+  }
+  
+  async deleteChallenge(id: number): Promise<boolean> {
+    try {
+      // First, delete all participants
+      await db.delete(participants).where(eq(participants.challengeId, id));
+      
+      // Then delete the challenge
+      const result = await db.delete(challenges).where(eq(challenges.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting challenge:', error);
+      return false;
+    }
   }
 
   async getAllParticipants(): Promise<Participant[]> {

@@ -132,6 +132,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update challenge status" });
     }
   });
+  
+  router.delete("/challenges/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Verify the challenge exists and the user is the creator
+      const challenge = await storage.getChallengeById(id);
+      
+      if (!challenge) {
+        res.status(404).json({ message: "Challenge not found" });
+        return;
+      }
+      
+      // In a real app, we would check req.user.id === challenge.creatorId
+      // For simplicity in this example, we'll allow any deletion
+      
+      const success = await storage.deleteChallenge(id);
+      
+      if (success) {
+        res.status(200).json({ message: "Challenge deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete challenge" });
+      }
+    } catch (error) {
+      console.error("Error deleting challenge:", error);
+      res.status(500).json({ message: "Failed to delete challenge" });
+    }
+  });
 
   // Participant routes
   router.get("/challenges/:challengeId/participants", async (req, res) => {

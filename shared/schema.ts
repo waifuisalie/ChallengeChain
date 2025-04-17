@@ -23,6 +23,7 @@ export const challenges = pgTable("challenges", {
   cryptoType: text("crypto_type").notNull(),
   entryFee: doublePrecision("entry_fee").notNull(),
   status: text("status").notNull().default("upcoming"),
+  imageUrl: text("image_url"),
 });
 
 export const participants = pgTable("participants", {
@@ -55,6 +56,7 @@ export const insertChallengeSchema = createInsertSchema(challenges).pick({
   cryptoType: true,
   entryFee: true,
   status: true,
+  imageUrl: true,
 });
 
 export const insertParticipantSchema = createInsertSchema(participants).pick({
