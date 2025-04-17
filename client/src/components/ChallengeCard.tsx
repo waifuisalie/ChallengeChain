@@ -156,6 +156,50 @@ const ChallengeCard = ({ challenge, onJoinClick }: ChallengeCardProps) => {
     onJoinClick(challenge);
   };
   
+  const isUserCreator = wallet.connected && challenge.creatorId === 1; // For production, this should check actual user ID
+  
+  const handleDeleteChallenge = async () => {
+    try {
+      if (!wallet.connected) {
+        toast({
+          variant: "destructive",
+          title: "Wallet Not Connected",
+          description: "Please connect your wallet first!",
+        });
+        return;
+      }
+      
+      if (!isUserCreator) {
+        toast({
+          variant: "destructive",
+          title: "Permission Denied",
+          description: "Only the creator can delete this challenge",
+        });
+        return;
+      }
+      
+      await apiRequest("DELETE", `/api/challenges/${challenge.id}`);
+      
+      // Invalidate challenges query to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/challenges"] });
+      
+      toast({
+        title: "Challenge Deleted",
+        description: "Your challenge has been deleted successfully!",
+      });
+      
+      refreshChallenges();
+      setIsDeleteAlertOpen(false);
+    } catch (error) {
+      console.error("Challenge deletion error:", error);
+      toast({
+        variant: "destructive",
+        title: "Challenge Deletion Failed",
+        description: "There was an error deleting the challenge.",
+      });
+    }
+  };
+  
   // Get a winner if there is one
   const winner = challenge.participants.find(p => p.isWinner);
   
