@@ -8,7 +8,7 @@ interface ChallengeContextType {
   refreshChallenges: () => void;
 }
 
-const ChallengeContext = createContext<ChallengeContextType | undefined>(undefined);
+export const ChallengeContext = createContext<ChallengeContextType | undefined>(undefined);
 
 export const useChallenges = (): ChallengeContextType => {
   const context = useContext(ChallengeContext);

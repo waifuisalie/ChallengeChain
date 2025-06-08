@@ -13,7 +13,7 @@ interface WalletContextType {
   disconnect: () => void;
 }
 
-const WalletContext = createContext<WalletContextType | undefined>(undefined);
+export const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const useWallet = (): WalletContextType => {
   const context = useContext(WalletContext);
