@@ -80,14 +80,23 @@ client/
             └── WalletContext.test.tsx
 ```
 
-## Contributing
+## Local Development Setup
 
-When adding new features:
-1. Write tests in the `__tests__` directory
-2. Ensure all tests pass using `npx vitest`
-3. Verify coverage remains high
-4. Use the UI interface for detailed debugging
+1. **Clone the repository**
+```bash
+git clone https://github.com/yourusername/ChainChallenge.git
+cd ChainChallenge
+```
 
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Start the Development Server**
+```bash
+npm run dev
+```
 ## License
 
 MIT
