@@ -97,16 +97,23 @@ describe("Leaderboard", () => {
     // Verify challenge selector functionality
     const selector = container.querySelector('[data-testid="challenge-selector"]');
     expect(selector).toBeTruthy();
-  });it("shows trophy icons for top 3 participants", () => {
+  });  it("shows trophy icons for top 3 participants", () => {
+    console.log('Starting trophy icons test...');
     render(<Leaderboard />, { wrapper: Wrapper });
 
     // Check for trophy icons
     const trophyIcons = screen.getAllByTestId('trophy-icon');
+    console.log('Found trophy icons:', trophyIcons.length);
       // Get unique trophy icons based on their parent text
     const uniqueTrophyIcons = Array.from(new Map(
-      trophyIcons.map(icon => [icon.parentElement?.textContent?.trim(), icon])
+      trophyIcons.map(icon => {
+        const text = icon.parentElement?.textContent?.trim();
+        console.log('Trophy icon parent text:', text);
+        return [text, icon];
+      })
     ).values());
     
+    console.log('Number of unique trophy icons:', uniqueTrophyIcons.length);
     expect(uniqueTrophyIcons).toHaveLength(3);
 
     // Verify trophy colors by checking if the classes are in the classList
@@ -114,25 +121,39 @@ describe("Leaderboard", () => {
     expect(uniqueTrophyIcons[1].classList.contains('text-gray-400')).toBe(true);   // Silver
     expect(uniqueTrophyIcons[2].classList.contains('text-amber-700')).toBe(true);  // Bronze
   });  it("filters participants when selecting a specific challenge", async () => {
+    console.log('Starting filter participants test...');
     const { container } = render(<Leaderboard />, { wrapper: Wrapper });
 
     // Click the challenge selector
     const selector = container.querySelector('[data-testid="challenge-selector"]');
+    console.log('Challenge selector found:', selector?.textContent);
     expect(selector).toBeTruthy();
     fireEvent.click(selector!);
+    console.log('Clicked challenge selector');
 
     // Select the specific challenge
     const option = screen.getByRole('option', { name: /Fitness Challenge/i });
+    console.log('Found challenge option:', option.textContent);
     fireEvent.click(option);
+    console.log('Selected specific challenge');
 
     // Verify only participants from selected challenge are shown
-    expect(screen.getAllByRole('row')).toHaveLength(4); // Header + 3 participants
-  });
-  it("shows correct potential rewards", () => {
+    const rows = screen.getAllByRole('row');
+    console.log('Number of rows found:', rows.length);
+    console.log('Row contents:', rows.map(row => row.textContent).join(', '));
+    expect(rows).toHaveLength(4); // Header + 3 participants
+  });  it("shows correct potential rewards", () => {
+    console.log('Starting potential rewards test...');
     render(<Leaderboard />, { wrapper: Wrapper });
 
     // Get all reward elements
     const rewardElements = screen.getAllByTestId('winner-reward');
+    console.log('Found reward elements:', rewardElements.length);
+    
+    // Log the content of each reward element
+    rewardElements.forEach((element, index) => {
+      console.log(`Reward ${index + 1} content:`, element.textContent);
+    });
     
     // Verify there are 3 reward elements (for top 3 places)
     expect(rewardElements).toHaveLength(3);
