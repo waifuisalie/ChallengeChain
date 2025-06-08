@@ -11,9 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { InfoIcon, UploadCloud, Image } from "lucide-react";
 import * as z from "zod";
 import { useChallenges } from "@/contexts/ChallengeContext";
-import { apiRequest } from "@/lib/queryClient";
-import { queryClient } from "@/lib/queryClient";
 import { useState } from "react";
+import * as queryClientModule from "../lib/queryClient";
 
 interface CreateChallengeModalProps {
   isOpen: boolean;
@@ -67,8 +66,10 @@ const CreateChallengeModal = ({ isOpen, onClose }: CreateChallengeModalProps) =>
   });
   
   const onSubmit = async (data: FormValues) => {
+    console.log('Form onSubmit called with data:', data);
     try {
       if (!wallet.connected) {
+        console.log('Wallet not connected');
         toast({
           variant: "destructive",
           title: "Wallet Not Connected",
@@ -99,13 +100,13 @@ const CreateChallengeModal = ({ isOpen, onClose }: CreateChallengeModalProps) =>
         imageUrl: imageUrl || data.imageUrl || ''
       };
       
-      console.log("Submitting challenge:", challengeData);
-      
-      // Create challenge via API
-      await apiRequest("POST", "/api/challenges", challengeData);
+      console.log("About to submit challenge:", challengeData);
+        // Create challenge via API
+      await queryClientModule.apiRequest("POST", "/api/challenges", challengeData);
+      console.log("Challenge created successfully");
       
       // Invalidate challenges query to refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/challenges"] });
+      queryClientModule.queryClient.invalidateQueries({ queryKey: ["/api/challenges"] });
       
       toast({
         title: "Challenge Created",
