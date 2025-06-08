@@ -135,7 +135,6 @@ describe("Leaderboard", () => {
     const rewardElements = screen.getAllByTestId('winner-reward');
     
     // Verify there are 3 reward elements (for top 3 places)
-    console.log("this is the shit", rewardElements);
     expect(rewardElements).toHaveLength(3);
       // First place should show total pool
     expect(rewardElements[0].textContent).toBe("10.0 SOL");
