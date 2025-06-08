@@ -48,9 +48,6 @@ npx vitest
 
 # Run tests with UI interface
 npx vitest --ui
-
-# Run tests with coverage
-npx vitest run --coverage
 ```
 
 ### Vitest UI
