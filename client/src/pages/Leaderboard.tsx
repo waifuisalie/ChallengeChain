@@ -63,7 +63,7 @@ const Leaderboard = () => {
       <div className="mb-8 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Leaderboard</h1>
         <Select value={selectedChallenge} onValueChange={setSelectedChallenge}>
-          <SelectTrigger className="w-[240px]">
+          <SelectTrigger className="w-[240px]" data-testid="challenge-selector">
             <SelectValue placeholder="All Challenges" />
           </SelectTrigger>
           <SelectContent>
@@ -113,28 +113,22 @@ const Leaderboard = () => {
                 {participants.map((participant, index) => (
                   <TableRow key={participant.id}>
                     <TableCell className="font-medium">
-                      {index === 0 ? (
-                        <div className="flex items-center">
-                          <Trophy className="h-5 w-5 text-yellow-500 mr-1" />
-                          {index + 1}
-                        </div>
-                      ) : index === 1 ? (
-                        <div className="flex items-center">
-                          <Trophy className="h-5 w-5 text-gray-400 mr-1" />
-                          {index + 1}
-                        </div>
-                      ) : index === 2 ? (
-                        <div className="flex items-center">
-                          <Trophy className="h-5 w-5 text-amber-700 mr-1" />
-                          {index + 1}
-                        </div>
-                      ) : (
-                        index + 1
-                      )}
-                    </TableCell>
-                    <TableCell>
                       <div className="flex items-center">
-                        <Avatar className="h-8 w-8 mr-2">
+                        {index < 3 && (
+                          <Trophy 
+                            className={`h-5 w-5 mr-1 ${
+                              index === 0 ? "text-yellow-500" : 
+                              index === 1 ? "text-gray-400" : 
+                              "text-amber-700"
+                            }`}
+                            data-testid="trophy-icon"
+                          />
+                        )}
+                        {index + 1}
+                      </div>
+                    </TableCell>                    <TableCell>
+                      <div className="flex items-center">
+                        <Avatar className={`h-8 w-8 mr-2 ${index < 3 ? 'border-2 border-' + (index === 0 ? 'yellow-500' : index === 1 ? 'gray-400' : 'amber-700') : ''}`}>
                           <AvatarFallback className="text-xs">
                             {getInitials(index)}
                           </AvatarFallback>
@@ -150,15 +144,13 @@ const Leaderboard = () => {
                     {selectedChallenge === "all" && (
                       <TableCell>{participant.challengeName}</TableCell>
                     )}
-                    <TableCell>{participant.score || "No score yet"}</TableCell>
-                    <TableCell className="text-right">
-                      {index === 0 ? (
-                        <span className="text-green-600 font-medium">
-                          {participant.totalPool.toFixed(1)} {participant.cryptoType}
-                        </span>
-                      ) : (
-                        <span className="text-gray-500">
-                          0 {participant.cryptoType}
+                    <TableCell data-testid="score-cell">{participant.score || "No score yet"}</TableCell>                    <TableCell className="text-right">
+                      {index < 3 && (
+                        <span 
+                          className={index === 0 ? "text-green-600 font-medium" : "text-gray-500"}
+                          data-testid="winner-reward"
+                        >
+                          {index === 0 ? participant.totalPool.toFixed(1) : "0"} {participant.cryptoType}
                         </span>
                       )}
                     </TableCell>
